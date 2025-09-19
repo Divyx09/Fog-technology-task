@@ -13,7 +13,7 @@ export const ShopBannerSection = (): JSX.Element => {
   return (
     <section className="w-full h-[316px] relative">
       <img
-        className="absolute -top-1.5 left-0 w-full h-[328px] blur-[3px] object-cover"
+        className="absolute -top-1.5 left-0 w-full h-[328px]  object-cover"
         alt="Rectangle"
         src="/rectangle-1.png"
       />
