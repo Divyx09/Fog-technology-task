@@ -10,14 +10,16 @@ import { FooterSection } from "./sections/FooterSection/FooterSection";
 
 export const Home = (): JSX.Element => {
   return (
-    <div className="bg-white overflow-hidden w-full min-w-[1440px] flex flex-col">
+    <div className="bg-white w-full flex flex-col overflow-hidden">
       <HeaderSection />
-      <HeroSection />
-      <BrowseRangeSection />
-      <ProductsSection />
-      <InspirationSection />
-      <FurnitureGallerySection />
-      <ContactFormSection />
+      <main className="flex-1 w-full">
+        <HeroSection />
+        <BrowseRangeSection />
+        <ProductsSection />
+        <InspirationSection />
+        <FurnitureGallerySection />
+        <ContactFormSection />
+      </main>
       <FooterSection />
     </div>
   );
