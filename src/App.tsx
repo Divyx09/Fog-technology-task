@@ -4,6 +4,11 @@ import { Home } from "./pages/Home/Home";
 import { Shop } from "./pages/Shop/Shop";
 import { About } from "./pages/About/About";
 import { Contact } from "./pages/Contact/Contact";
+import { Cart } from "./pages/Cart/Cart";
+import { Checkout } from "./pages/Checkout/Checkout";
+import { ProductComparison } from "./pages/ProductComparison/ProductComparison";
+import { SingleProduct } from "./pages/SingleProduct/SingleProduct";
+import { Blog } from "./pages/Blog/Blog";
 
 export const App = (): JSX.Element => {
   return (
@@ -15,6 +20,11 @@ export const App = (): JSX.Element => {
             <Route path="/shop" element={<Shop />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/comparison" element={<ProductComparison />} />
+            <Route path="/product/:id" element={<SingleProduct />} />
+            <Route path="/blog" element={<Blog />} />
           </Routes>
         </main>
       </div>

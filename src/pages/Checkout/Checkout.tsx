@@ -1,16 +1,16 @@
 import React from "react";
 import { HeaderSection } from "./sections/HeaderSection/HeaderSection";
-import { CartBannerSection } from "./sections/CartBannerSection/CartBannerSection";
-import { CartContentSection } from "./sections/CartContentSection/CartContentSection";
+import { CheckoutBannerSection } from "./sections/CheckoutBannerSection/CheckoutBannerSection";
+import { CheckoutFormSection } from "./sections/CheckoutFormSection/CheckoutFormSection";
 import { ContactFormSection } from "./sections/ContactFormSection/ContactFormSection";
 import { FooterSection } from "./sections/FooterSection/FooterSection";
 
-export const Cart = (): JSX.Element => {
+export const Checkout = (): JSX.Element => {
   return (
     <div className="bg-white overflow-hidden w-full min-w-[1440px] flex flex-col">
       <HeaderSection />
-      <CartBannerSection />
-      <CartContentSection />
+      <CheckoutBannerSection />
+      <CheckoutFormSection />
       <ContactFormSection />
       <FooterSection />
     </div>
