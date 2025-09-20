@@ -5,34 +5,36 @@ import { useApp } from "../../../../context/AppContext";
 export const PaginationSection = (): JSX.Element | null => {
   const { state, actions } = useApp();
   const { pagination } = state;
-  const { currentPage, itemsPerPage, totalItems } = pagination;
-  
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      actions.setCurrentPage(page);
-      // Scroll to top of products section
-      window.scrollTo({ top: 400, behavior: 'smooth' });
-    }
-  };
-  
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      handlePageChange(currentPage + 1);
-    }
-  };
-  
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      handlePageChange(currentPage - 1);
-    }
-  };
+  const { currentPage, totalPages, totalItems, itemsPerPage } = pagination;
   
   // Don't show pagination if there are no products or only one page
   if (totalItems === 0 || totalPages <= 1) {
     return null;
   }
+  
+  const handlePageClick = (page: number) => {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      // Call a direct page change function
+      actions.loadProducts({ 
+        ...state.filters, 
+        page 
+      });
+      // Scroll to top of products section
+      window.scrollTo({ top: 400, behavior: 'smooth' });
+    }
+  };
+  
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      handlePageClick(currentPage - 1);
+    }
+  };
+  
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      handlePageClick(currentPage + 1);
+    }
+  };
   
   // Generate page numbers to display (show max 5 pages around current page)
   const getVisiblePages = () => {
@@ -75,7 +77,7 @@ export const PaginationSection = (): JSX.Element | null => {
           {visiblePages.map((page) => (
             <Button
               key={page}
-              onClick={() => handlePageChange(page)}
+              onClick={() => handlePageClick(page)}
               className={`w-[60px] h-[60px] [font-family:'Poppins',Helvetica] font-normal text-xl rounded-[10px] ${
                 currentPage === page
                   ? 'bg-[#b88e2f] hover:bg-[#a67d28] text-white'

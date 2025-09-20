@@ -1,4 +1,4 @@
-import { Product, Cart, ApiResponse, ApiError } from '../types';
+import { Product, Cart, ApiResponse, ApiError, ProductsResponse, ProductFilters, ProductStats } from '../types';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -31,8 +31,24 @@ class ApiService {
   }
 
   // Products API
-  async getAllProducts(): Promise<Product[]> {
-    return this.makeRequest<Product[]>('/products');
+  async getAllProducts(filters?: ProductFilters): Promise<ProductsResponse> {
+    const queryParams = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, value.toString());
+        }
+      });
+    }
+    
+    const endpoint = queryParams.toString() ? `/products?${queryParams}` : '/products';
+    return this.makeRequest<ProductsResponse>(endpoint);
+  }
+
+  async getProductsLegacy(): Promise<Product[]> {
+    const response = await this.getAllProducts({ page: 1, limit: 1000 });
+    return response.products;
   }
 
   async getProductById(id: string): Promise<Product> {
@@ -53,10 +69,19 @@ class ApiService {
     });
   }
 
-  async deleteProduct(id: string): Promise<{ message: string }> {
-    return this.makeRequest<{ message: string }>(`/products/${id}`, {
+  async deleteProduct(id: string): Promise<{ message: string; product: Product }> {
+    return this.makeRequest<{ message: string; product: Product }>(`/products/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  // Additional Products API
+  async getBrands(): Promise<string[]> {
+    return this.makeRequest<string[]>('/products/brands');
+  }
+
+  async getProductStats(): Promise<ProductStats> {
+    return this.makeRequest<ProductStats>('/products/stats');
   }
 
   // Cart API

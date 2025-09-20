@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import { ErrorNotification } from "./components/ErrorNotification/ErrorNotification";
+import { Toaster } from "./components/ui/toaster";
 import { Home } from "./pages/Home/Home";
 import { Shop } from "./pages/Shop/Shop";
 import { About } from "./pages/About/About";
@@ -31,6 +32,7 @@ export const App = (): JSX.Element => {
             </Routes>
           </main>
           <ErrorNotification />
+          <Toaster />
         </div>
       </Router>
     </AppProvider>

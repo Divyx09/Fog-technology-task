@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
+import db from "mongoose";
 import Product from "./models/Product.js";
 
 dotenv.config();
@@ -69,17 +69,17 @@ const sampleProducts = Array.from({ length: 50 }, (_, i) => {
 
 async function seedProducts() {
   try {
-    await mongoose.connect(MONGODB_URI, {
+    await db.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     await Product.deleteMany();
     await Product.insertMany(sampleProducts);
     console.log("Sample products seeded successfully.");
-    mongoose.disconnect();
+    db.disconnect();
   } catch (err) {
     console.error("Seeding error:", err);
-    mongoose.disconnect();
+    db.disconnect();
   }
 }
 

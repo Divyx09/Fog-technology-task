@@ -1,15 +1,18 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Product, FrontendCartItem } from '../types';
+import { Product, FrontendCartItem, ProductFilters, ProductsResponse } from '../types';
 import { apiService } from '../services/api';
 import { convertToFrontendCartItem, getCartId, setCartId } from '../utils';
+import { toast } from '../hooks/use-toast';
 
 // State interface
 interface AppState {
   products: Product[];
   cartItems: FrontendCartItem[];
   cartId: string | null;
+  filters: ProductFilters;
   pagination: {
     currentPage: number;
+    totalPages: number;
     itemsPerPage: number;
     totalItems: number;
   };
@@ -22,24 +25,34 @@ interface AppState {
 
 // Action types
 type AppAction =
-  | { type: 'SET_PRODUCTS'; payload: Product[] }
+  | { type: 'SET_PRODUCTS_DATA'; payload: ProductsResponse }
   | { type: 'SET_CART_ITEMS'; payload: FrontendCartItem[] }
   | { type: 'SET_CART_ID'; payload: string }
+  | { type: 'SET_FILTERS'; payload: Partial<ProductFilters> }
+  | { type: 'RESET_FILTERS' }
   | { type: 'SET_LOADING'; payload: { type: 'products' | 'cart'; loading: boolean } }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'ADD_TO_CART'; payload: FrontendCartItem }
   | { type: 'UPDATE_CART_ITEM'; payload: { id: string; quantity: number } }
   | { type: 'REMOVE_FROM_CART'; payload: string }
-  | { type: 'SET_CURRENT_PAGE'; payload: number }
-  | { type: 'SET_TOTAL_ITEMS'; payload: number };
+  | { type: 'ADD_PRODUCT'; payload: Product }
+  | { type: 'UPDATE_PRODUCT'; payload: Product }
+  | { type: 'DELETE_PRODUCT'; payload: string };
 
 // Initial state
 const initialState: AppState = {
   products: [],
   cartItems: [],
   cartId: null,
+  filters: {
+    page: 1,
+    limit: 12,
+    sortBy: 'name',
+    sortOrder: 'asc',
+  },
   pagination: {
     currentPage: 1,
+    totalPages: 1,
     itemsPerPage: 12,
     totalItems: 0,
   },
@@ -53,12 +66,31 @@ const initialState: AppState = {
 // Reducer
 const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
-    case 'SET_PRODUCTS':
-      return { ...state, products: action.payload };
+    case 'SET_PRODUCTS_DATA':
+      return {
+        ...state,
+        products: action.payload.products,
+        pagination: action.payload.pagination,
+      };
     case 'SET_CART_ITEMS':
       return { ...state, cartItems: action.payload };
     case 'SET_CART_ID':
       return { ...state, cartId: action.payload };
+    case 'SET_FILTERS':
+      return {
+        ...state,
+        filters: { ...state.filters, ...action.payload },
+      };
+    case 'RESET_FILTERS':
+      return {
+        ...state,
+        filters: {
+          page: 1,
+          limit: 12,
+          sortBy: 'name',
+          sortOrder: 'asc',
+        },
+      };
     case 'SET_LOADING':
       return {
         ...state,
@@ -93,15 +125,22 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         ...state,
         cartItems: state.cartItems.filter(item => item.id !== action.payload),
       };
-    case 'SET_CURRENT_PAGE':
+    case 'ADD_PRODUCT':
       return {
         ...state,
-        pagination: { ...state.pagination, currentPage: action.payload },
+        products: [...state.products, action.payload],
       };
-    case 'SET_TOTAL_ITEMS':
+    case 'UPDATE_PRODUCT':
       return {
         ...state,
-        pagination: { ...state.pagination, totalItems: action.payload },
+        products: state.products.map(product =>
+          product._id === action.payload._id ? action.payload : product
+        ),
+      };
+    case 'DELETE_PRODUCT':
+      return {
+        ...state,
+        products: state.products.filter(product => product._id !== action.payload),
       };
     default:
       return state;
@@ -112,12 +151,16 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 interface AppContextType {
   state: AppState;
   actions: {
-    loadProducts: () => Promise<void>;
+    loadProducts: (filters?: ProductFilters) => Promise<void>;
+    setFilters: (filters: Partial<ProductFilters>) => void;
+    resetFilters: () => void;
     loadCart: () => Promise<void>;
     addToCart: (product: Product, quantity?: number) => Promise<void>;
     updateCartItemQuantity: (productId: string, quantity: number) => Promise<void>;
     removeFromCart: (productId: string) => Promise<void>;
-    setCurrentPage: (page: number) => void;
+    createProduct: (product: Omit<Product, '_id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
+    deleteProduct: (id: string) => Promise<void>;
     clearError: () => void;
   };
 }
@@ -137,20 +180,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  // Load products
-  const loadProducts = async () => {
+  // Load products with filters
+  const loadProducts = async (filters?: ProductFilters) => {
     dispatch({ type: 'SET_LOADING', payload: { type: 'products', loading: true } });
     dispatch({ type: 'SET_ERROR', payload: null });
     
+    const finalFilters = filters || state.filters;
+    
     try {
-      const products = await apiService.getAllProducts();
-      dispatch({ type: 'SET_PRODUCTS', payload: products });
-      dispatch({ type: 'SET_TOTAL_ITEMS', payload: products.length });
+      const response = await apiService.getAllProducts(finalFilters);
+      dispatch({ type: 'SET_PRODUCTS_DATA', payload: response });
+      
+      // Update filters to match what was actually used
+      dispatch({ type: 'SET_FILTERS', payload: finalFilters });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to load products' });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { type: 'products', loading: false } });
     }
+  };
+
+  // Set filters and reload products
+  const setFilters = (filters: Partial<ProductFilters>) => {
+    // Always reset to page 1 when changing any filters except for direct page changes
+    const newFilters = { ...state.filters, ...filters };
+    loadProducts(newFilters);
+  };
+
+  // Reset filters to default
+  const resetFilters = () => {
+    dispatch({ type: 'RESET_FILTERS' });
+    loadProducts({
+      page: 1,
+      limit: 12,
+      sortBy: 'name',
+      sortOrder: 'asc',
+    });
   };
 
   // Load cart
@@ -204,6 +269,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       
       dispatch({ type: 'ADD_TO_CART', payload: frontendCartItem });
+      
+      // Show success toast notification
+      toast({
+        variant: 'success',
+        title: 'Added to cart!',
+        description: `${product.name} has been added to your cart.`,
+      });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to add to cart' });
     }
@@ -233,9 +305,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Set current page
+  // Create new product
+  const createProduct = async (productData: Omit<Product, '_id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newProduct = await apiService.createProduct(productData);
+      dispatch({ type: 'ADD_PRODUCT', payload: newProduct });
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to create product' });
+      throw error;
+    }
+  };
+
+  // Update existing product
+  const updateProduct = async (id: string, productData: Partial<Product>) => {
+    try {
+      const updatedProduct = await apiService.updateProduct(id, productData);
+      dispatch({ type: 'UPDATE_PRODUCT', payload: updatedProduct });
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to update product' });
+      throw error;
+    }
+  };
+
+  // Delete product
+  const deleteProduct = async (id: string) => {
+    try {
+      await apiService.deleteProduct(id);
+      dispatch({ type: 'DELETE_PRODUCT', payload: id });
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete product' });
+      throw error;
+    }
+  };
+
+  // Set current page and reload products
   const setCurrentPage = (page: number) => {
-    dispatch({ type: 'SET_CURRENT_PAGE', payload: page });
+    const newFilters = { ...state.filters, page };
+    loadProducts(newFilters);
   };
 
   // Clear error
@@ -247,11 +353,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     state,
     actions: {
       loadProducts,
+      setFilters,
+      resetFilters,
       loadCart,
       addToCart,
       updateCartItemQuantity,
       removeFromCart,
-      setCurrentPage,
+      createProduct,
+      updateProduct,
+      deleteProduct,
       clearError,
     },
   };

@@ -5,23 +5,23 @@ import { useApp } from "../../../../context/AppContext";
 import { formatPrice } from "../../../../utils";
 import { useNavigate } from "react-router-dom";
 import { ProductImage } from "../../../../components/ProductImage/ProductImage";
+import { EditIcon, TrashIcon } from "lucide-react";
+import { Product } from "../../../../types";
 
-export const ProductGridSection = (): JSX.Element => {
+interface ProductGridSectionProps {
+  onEditProduct?: (product: Product) => void;
+}
+
+export const ProductGridSection: React.FC<ProductGridSectionProps> = ({ onEditProduct }) => {
   const { state, actions } = useApp();
   const navigate = useNavigate();
-  const { products, loading, error, pagination } = state;
-  const { currentPage, itemsPerPage } = pagination;
+  const { products, loading, error } = state;
 
   useEffect(() => {
     if (products.length === 0) {
       actions.loadProducts();
     }
   }, []);
-
-  // Calculate pagination
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProducts = products.slice(startIndex, endIndex);
 
   const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
     e.stopPropagation();
@@ -35,6 +35,24 @@ export const ProductGridSection = (): JSX.Element => {
 
   const handleProductClick = (productId: string) => {
     navigate(`/product/${productId}`);
+  };
+
+  const handleEditProduct = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    if (onEditProduct) {
+      onEditProduct(product);
+    }
+  };
+
+  const handleDeleteProduct = async (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await actions.deleteProduct(productId);
+      } catch (error) {
+        console.error('Failed to delete product:', error);
+      }
+    }
   };
 
   if (loading.products) {
@@ -67,8 +85,8 @@ export const ProductGridSection = (): JSX.Element => {
   return (
     <section className="w-full bg-white py-16">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {currentProducts.filter(product => product && product._id).map((product) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {products.filter(product => product && product._id).map((product) => (
             <Card
               key={product._id}
               className="group relative bg-[#f4f5f7] border-0 shadow-none overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
@@ -79,20 +97,20 @@ export const ProductGridSection = (): JSX.Element => {
                   <ProductImage
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-[301px] object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-[250px] sm:h-[280px] lg:h-[301px] object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   
                   {/* Stock badges */}
-                  <div className="absolute top-6 right-6 flex flex-col gap-2">
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
                     {product.stock <= 5 && product.stock > 0 && (
-                      <div className="w-12 h-12 bg-[#e97171] rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-[#e97171] rounded-full flex items-center justify-center">
                         <span className="[font-family:'Poppins',Helvetica] font-medium text-white text-xs">
                           Low
                         </span>
                       </div>
                     )}
                     {product.stock === 0 && (
-                      <div className="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
                         <span className="[font-family:'Poppins',Helvetica] font-medium text-white text-xs">
                           Out
                         </span>
@@ -100,22 +118,42 @@ export const ProductGridSection = (): JSX.Element => {
                     )}
                   </div>
 
+                  {/* Admin action buttons */}
+                  <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="w-8 h-8 bg-white/90 hover:bg-white"
+                      onClick={(e) => handleEditProduct(e, product)}
+                    >
+                      <EditIcon className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="w-8 h-8 bg-red-500/90 hover:bg-red-600"
+                      onClick={(e) => handleDeleteProduct(e, product._id)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </Button>
+                  </div>
+
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div className="text-center space-y-6">
+                    <div className="text-center space-y-4">
                       <Button 
-                        className="bg-white text-[#b88e2f] hover:bg-gray-100 [font-family:'Poppins',Helvetica] font-semibold text-base px-12 py-3"
+                        className="bg-white text-[#b88e2f] hover:bg-gray-100 [font-family:'Poppins',Helvetica] font-semibold text-sm px-8 py-2"
                         onClick={(e) => handleAddToCart(e, product._id)}
                         disabled={product.stock === 0}
                       >
                         {product.stock === 0 ? 'Out of Stock' : 'Add to cart'}
                       </Button>
-                      <div className="flex items-center justify-center gap-5 text-white">
-                        <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300">
+                      <div className="flex items-center justify-center gap-4 text-white">
+                        <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-sm hover:text-gray-300">
                           Share
                         </button>
                         <button 
-                          className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300"
+                          className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-sm hover:text-gray-300"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate('/comparison');
@@ -123,7 +161,7 @@ export const ProductGridSection = (): JSX.Element => {
                         >
                           Compare
                         </button>
-                        <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300">
+                        <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-sm hover:text-gray-300">
                           Like
                         </button>
                       </div>
@@ -132,17 +170,20 @@ export const ProductGridSection = (): JSX.Element => {
                 </div>
 
                 <div className="p-4 bg-[#f4f5f7]">
-                  <h3 className="[font-family:'Poppins',Helvetica] font-semibold text-[#3a3a3a] text-2xl mb-2">
+                  <h3 className="[font-family:'Poppins',Helvetica] font-semibold text-[#3a3a3a] text-lg lg:text-xl mb-1 truncate">
                     {product.name}
                   </h3>
-                  <p className="[font-family:'Poppins',Helvetica] font-medium text-[#898989] text-base mb-2">
+                  <p className="[font-family:'Poppins',Helvetica] font-medium text-[#898989] text-sm mb-1 line-clamp-2">
+                    {product.brand}
+                  </p>
+                  <p className="[font-family:'Poppins',Helvetica] font-normal text-[#898989] text-xs mb-2 line-clamp-2">
                     {product.description}
                   </p>
-                  <div className="flex items-center gap-4">
-                    <span className="[font-family:'Poppins',Helvetica] font-semibold text-[#3a3a3a] text-xl">
+                  <div className="flex items-center justify-between">
+                    <span className="[font-family:'Poppins',Helvetica] font-semibold text-[#3a3a3a] text-lg">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="[font-family:'Poppins',Helvetica] font-normal text-[#898989] text-sm">
+                    <span className="[font-family:'Poppins',Helvetica] font-normal text-[#898989] text-xs">
                       Stock: {product.stock}
                     </span>
                   </div>
@@ -151,6 +192,15 @@ export const ProductGridSection = (): JSX.Element => {
             </Card>
           ))}
         </div>
+
+        {/* Empty state */}
+        {products.length === 0 && !loading.products && (
+          <div className="text-center py-16">
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">No products found</h3>
+            <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
+            <Button onClick={() => actions.resetFilters()}>Reset Filters</Button>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   image: string;
   category?: string;
+  brand: string;
   stock: number;
   createdAt?: string;
   updatedAt?: string;
@@ -36,6 +37,36 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+export interface ProductsResponse {
+  products: Product[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
+export interface ProductFilters {
+  page?: number;
+  limit?: number;
+  sortBy?: 'name' | 'price' | 'brand' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
+  brand?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+}
+
+export interface ProductStats {
+  totalProducts: number;
+  avgPrice: number;
+  minPrice: number;
+  maxPrice: number;
+  brands: string[];
 }
 
 // API Error Class
