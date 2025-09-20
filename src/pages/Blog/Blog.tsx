@@ -1,18 +1,20 @@
 import React from "react";
-import { HeaderSection } from "./sections/HeaderSection/HeaderSection";
-import { BlogBannerSection } from "./sections/BlogBannerSection/BlogBannerSection";
+import { Layout } from "../../components/Layout/Layout";
+import { Banner } from "../../components/Banner/Banner";
+import { Features } from "../../components/Features/Features";
 import { BlogContentSection } from "./sections/BlogContentSection/BlogContentSection";
-import { ContactFormSection } from "./sections/ContactFormSection/ContactFormSection";
-import { FooterSection } from "./sections/FooterSection/FooterSection";
 
 export const Blog = (): JSX.Element => {
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Blog" },
+  ];
+
   return (
-    <div className="bg-white overflow-hidden w-full min-w-[1440px] flex flex-col">
-      <HeaderSection />
-      <BlogBannerSection />
+    <Layout>
+      <Banner title="Blog" breadcrumbs={breadcrumbs} />
       <BlogContentSection />
-      <ContactFormSection />
-      <FooterSection />
-    </div>
+      <Features />
+    </Layout>
   );
 };

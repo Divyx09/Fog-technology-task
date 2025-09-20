@@ -1,19 +1,86 @@
 import { FacebookIcon, LinkedinIcon, MinusIcon, PlusIcon, StarIcon, TwitterIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../../../../components/ui/button";
-
-const productImages = [
-  "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=481&h=391&fit=crop",
-  "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=76&h=80&fit=crop",
-  "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=76&h=80&fit=crop",
-  "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=76&h=80&fit=crop",
-  "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=76&h=80&fit=crop",
-];
+import { useApp } from "../../../../context/AppContext";
+import { formatPrice } from "../../../../utils";
+import { apiService } from "../../../../services/api";
+import { Product } from "../../../../types";
+import { ProductImage } from "../../../../components/ProductImage/ProductImage";
 
 export const ProductDetailsSection = (): JSX.Element => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { actions } = useApp();
+  
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState("L");
   const [selectedColor, setSelectedColor] = useState("purple");
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!id) {
+        setError('Product ID not found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const productData = await apiService.getProductById(id);
+        setProduct(productData);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id]);
+
+  const handleAddToCart = async () => {
+    if (product) {
+      await actions.addToCart(product, quantity);
+    }
+  };
+
+  const handleCompare = () => {
+    navigate('/comparison');
+  };
+
+  if (loading) {
+    return (
+      <section className="w-full bg-white py-[35px]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center items-center h-96">
+            <div className="text-lg text-gray-500">Loading product details...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <section className="w-full bg-white py-[35px]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center items-center h-96">
+            <div className="text-center">
+              <div className="text-lg text-red-500 mb-4">
+                {error || 'Product not found'}
+              </div>
+              <Button onClick={() => navigate('/shop')}>Back to Shop</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full bg-white py-[35px]">
@@ -22,18 +89,19 @@ export const ProductDetailsSection = (): JSX.Element => {
           {/* Product Images */}
           <div className="flex gap-[31px]">
             <div className="flex flex-col gap-8">
-              {productImages.slice(1).map((image, index) => (
-                <img
+              {/* Placeholder thumbnails */}
+              {[1, 2, 3, 4].map((index) => (
+                <ProductImage
                   key={index}
-                  src={image}
-                  alt={`Product ${index + 1}`}
+                  src={product?.image}
+                  alt={`${product?.name || 'Product'} ${index}`}
                   className="w-[76px] h-20 object-cover rounded-[10px] bg-[#f9f1e7] cursor-pointer hover:opacity-80"
                 />
               ))}
             </div>
-            <img
-              src={productImages[0]}
-              alt="Main product"
+            <ProductImage
+              src={product?.image}
+              alt={product?.name || 'Product'}
               className="w-[481px] h-[500px] object-cover rounded-[10px] bg-[#f9f1e7]"
             />
           </div>
@@ -41,11 +109,11 @@ export const ProductDetailsSection = (): JSX.Element => {
           {/* Product Info */}
           <div className="flex-1 max-w-[606px]">
             <h1 className="[font-family:'Poppins',Helvetica] font-normal text-black text-[42px] mb-4">
-              Asgaard sofa
+              {product?.name || 'Unknown Product'}
             </h1>
             
             <p className="[font-family:'Poppins',Helvetica] font-medium text-[#9f9f9f] text-2xl mb-4">
-              Rs. 250,000.00
+              {formatPrice(product?.price || 0)}
             </p>
 
             <div className="flex items-center gap-[18px] mb-[13px]">
@@ -66,8 +134,20 @@ export const ProductDetailsSection = (): JSX.Element => {
             </div>
 
             <p className="[font-family:'Poppins',Helvetica] font-normal text-black text-[13px] mb-[22px]">
-              Setting the bar as one of the loudest speakers in its class, the Kilburn is a compact, stout-hearted hero with a well-balanced audio which boasts a clear midrange and extended highs for a sound.
+              {product?.description || 'No description available'}
             </p>
+
+            {/* Stock Info */}
+            <div className="mb-[22px]">
+              <p className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-sm mb-3">
+                Availability: {(product?.stock || 0) > 0 ? `${product?.stock || 0} in stock` : 'Out of stock'}
+              </p>
+              {(product?.stock || 0) <= 5 && (product?.stock || 0) > 0 && (
+                <p className="[font-family:'Poppins',Helvetica] font-normal text-red-500 text-sm">
+                  Only {product?.stock || 0} left in stock!
+                </p>
+              )}
+            </div>
 
             {/* Size Selection */}
             <div className="mb-[22px]">
@@ -124,6 +204,7 @@ export const ProductDetailsSection = (): JSX.Element => {
                   size="icon"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="w-8 h-8 hover:bg-transparent"
+                  disabled={(product?.stock || 0) === 0}
                 >
                   <MinusIcon className="w-4 h-4" />
                 </Button>
@@ -133,19 +214,25 @@ export const ProductDetailsSection = (): JSX.Element => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(product?.stock || 0, quantity + 1))}
                   className="w-8 h-8 hover:bg-transparent"
+                  disabled={(product?.stock || 0) === 0}
                 >
                   <PlusIcon className="w-4 h-4" />
                 </Button>
               </div>
 
-              <Button className="w-[215px] h-16 bg-transparent border border-black text-black hover:bg-black hover:text-white [font-family:'Poppins',Helvetica] font-normal text-xl rounded-[15px]">
-                Add To Cart
+              <Button 
+                onClick={handleAddToCart}
+                disabled={(product?.stock || 0) === 0}
+                className="w-[215px] h-16 bg-transparent border border-black text-black hover:bg-black hover:text-white [font-family:'Poppins',Helvetica] font-normal text-xl rounded-[15px] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {(product?.stock || 0) === 0 ? 'Out of Stock' : 'Add To Cart'}
               </Button>
 
               <Button 
                 variant="outline"
+                onClick={handleCompare}
                 className="w-[215px] h-16 border border-black text-black hover:bg-black hover:text-white [font-family:'Poppins',Helvetica] font-normal text-xl rounded-[15px]"
               >
                 + Compare
@@ -159,7 +246,7 @@ export const ProductDetailsSection = (): JSX.Element => {
                   SKU
                 </span>
                 <span className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                  : SS001
+                  : {product?._id?.slice(-6).toUpperCase() || 'N/A'}
                 </span>
               </div>
               <div className="flex">
@@ -167,15 +254,15 @@ export const ProductDetailsSection = (): JSX.Element => {
                   Category
                 </span>
                 <span className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                  : Sofas
+                  : {product?.category || 'General'}
                 </span>
               </div>
               <div className="flex">
                 <span className="w-20 [font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                  Tags
+                  Stock
                 </span>
                 <span className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                  : Sofa, Chair, Home, Shop
+                  : {product?.stock || 0} items
                 </span>
               </div>
               <div className="flex items-center">

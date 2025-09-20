@@ -1,18 +1,20 @@
 import React from "react";
-import { HeaderSection } from "./sections/HeaderSection/HeaderSection";
-import { CheckoutBannerSection } from "./sections/CheckoutBannerSection/CheckoutBannerSection";
+import { Layout } from "../../components/Layout/Layout";
+import { Banner } from "../../components/Banner/Banner";
+import { Features } from "../../components/Features/Features";
 import { CheckoutFormSection } from "./sections/CheckoutFormSection/CheckoutFormSection";
-import { ContactFormSection } from "./sections/ContactFormSection/ContactFormSection";
-import { FooterSection } from "./sections/FooterSection/FooterSection";
 
 export const Checkout = (): JSX.Element => {
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Checkout" },
+  ];
+
   return (
-    <div className="bg-white overflow-hidden w-full min-w-[1440px] flex flex-col">
-      <HeaderSection />
-      <CheckoutBannerSection />
+    <Layout>
+      <Banner title="Checkout" breadcrumbs={breadcrumbs} />
       <CheckoutFormSection />
-      <ContactFormSection />
-      <FooterSection />
-    </div>
+      <Features />
+    </Layout>
   );
 };

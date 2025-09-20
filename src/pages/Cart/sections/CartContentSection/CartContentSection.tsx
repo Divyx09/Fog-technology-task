@@ -1,21 +1,70 @@
-import { TrashIcon } from "lucide-react";
-import React from "react";
+import { TrashIcon, MinusIcon, PlusIcon } from "lucide-react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../components/ui/button";
 import { Card, CardContent } from "../../../../components/ui/card";
-
-const cartItems = [
-  {
-    id: 1,
-    name: "Asgaard sofa",
-    price: 250000,
-    quantity: 1,
-    subtotal: 250000,
-    image: "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=108&h=105&fit=crop",
-  },
-];
+import { useApp } from "../../../../context/AppContext";
+import { formatPrice, calculateCartTotal } from "../../../../utils";
+import { ProductImage } from "../../../../components/ProductImage/ProductImage";
 
 export const CartContentSection = (): JSX.Element => {
-  const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+  const { state, actions } = useApp();
+  const navigate = useNavigate();
+  const { cartItems, loading } = state;
+
+  useEffect(() => {
+    actions.loadCart();
+  }, []);
+
+  const handleQuantityChange = async (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      await actions.removeFromCart(productId);
+    } else {
+      await actions.updateCartItemQuantity(productId, newQuantity);
+    }
+  };
+
+  const handleRemoveItem = async (productId: string) => {
+    await actions.removeFromCart(productId);
+  };
+
+  const handleCheckout = () => {
+    navigate('/checkout');
+  };
+
+  const total = calculateCartTotal(cartItems);
+
+  if (loading.cart) {
+    return (
+      <section className="w-full bg-white py-[72px]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-gray-500">Loading cart...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <section className="w-full bg-white py-[72px]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center">
+            <h2 className="[font-family:'Poppins',Helvetica] font-semibold text-black text-[32px] mb-8">
+              Your cart is empty
+            </h2>
+            <Button 
+              onClick={() => navigate('/shop')}
+              className="bg-[#b88e2f] hover:bg-[#a67d28] text-white px-8 py-3"
+            >
+              Continue Shopping
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full bg-white py-[72px]">
@@ -25,7 +74,7 @@ export const CartContentSection = (): JSX.Element => {
           <div className="flex-1">
             {/* Header */}
             <div className="bg-[#f9f1e7] h-[55px] flex items-center px-[140px] mb-[55px]">
-              <div className="grid grid-cols-4 gap-4 w-full">
+              <div className="grid grid-cols-5 gap-4 w-full">
                 <div className="[font-family:'Poppins',Helvetica] font-medium text-black text-base">
                   Product
                 </div>
@@ -38,42 +87,71 @@ export const CartContentSection = (): JSX.Element => {
                 <div className="[font-family:'Poppins',Helvetica] font-medium text-black text-base text-center">
                   Subtotal
                 </div>
+                <div className="[font-family:'Poppins',Helvetica] font-medium text-black text-base text-center">
+                  Action
+                </div>
               </div>
             </div>
 
             {/* Cart Items */}
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex items-center px-[140px] py-[25px] border-b border-gray-100">
-                <div className="grid grid-cols-4 gap-4 w-full items-center">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-[108px] h-[105px] object-cover rounded-[10px] bg-[#f9f1e7]"
-                    />
-                    <span className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                      {item.name}
-                    </span>
-                  </div>
-                  <div className="text-center [font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                    Rs. {item.price.toLocaleString()}
-                  </div>
-                  <div className="text-center">
-                    <div className="w-8 h-8 border border-[#9f9f9f] rounded flex items-center justify-center [font-family:'Poppins',Helvetica] font-normal text-black text-base mx-auto">
-                      {item.quantity}
+            {cartItems.map((item) => {
+              const subtotal = item.price * item.quantity;
+              return (
+                <div key={item.id} className="flex items-center px-[140px] py-[25px] border-b border-gray-100">
+                  <div className="grid grid-cols-5 gap-4 w-full items-center">
+                    <div className="flex items-center gap-4">
+                      <ProductImage
+                        src={item.image}
+                        alt={item.name}
+                        className="w-[108px] h-[105px] object-cover rounded-[10px] bg-[#f9f1e7]"
+                      />
+                      <span className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
+                        {item.name}
+                      </span>
+                    </div>
+                    <div className="text-center [font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
+                      {formatPrice(item.price)}
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          className="w-6 h-6 text-gray-500 hover:text-red-500"
+                        >
+                          <MinusIcon className="w-3 h-3" />
+                        </Button>
+                        <div className="w-8 h-8 border border-[#9f9f9f] rounded flex items-center justify-center [font-family:'Poppins',Helvetica] font-normal text-black text-base">
+                          {item.quantity}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          className="w-6 h-6 text-gray-500 hover:text-green-500"
+                        >
+                          <PlusIcon className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-center [font-family:'Poppins',Helvetica] font-normal text-black text-base">
+                      {formatPrice(subtotal)}
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="text-[#b88e2f] hover:bg-[#b88e2f]/10 hover:text-red-500"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center gap-4">
-                    <span className="[font-family:'Poppins',Helvetica] font-normal text-black text-base">
-                      Rs. {item.subtotal.toLocaleString()}
-                    </span>
-                    <Button variant="ghost" size="icon" className="text-[#b88e2f] hover:bg-[#b88e2f]/10">
-                      <TrashIcon className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Cart Totals */}
@@ -89,7 +167,7 @@ export const CartContentSection = (): JSX.Element => {
                     Subtotal
                   </span>
                   <span className="[font-family:'Poppins',Helvetica] font-normal text-[#9f9f9f] text-base">
-                    Rs. {total.toLocaleString()}
+                    {formatPrice(total)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -97,12 +175,16 @@ export const CartContentSection = (): JSX.Element => {
                     Total
                   </span>
                   <span className="[font-family:'Poppins',Helvetica] font-medium text-[#b88e2f] text-xl">
-                    Rs. {total.toLocaleString()}
+                    {formatPrice(total)}
                   </span>
                 </div>
               </div>
 
-              <Button className="w-full h-[58px] bg-transparent border-2 border-black text-black hover:bg-black hover:text-white [font-family:'Poppins',Helvetica] font-normal text-xl rounded-[15px]">
+              <Button 
+                onClick={handleCheckout}
+                disabled={cartItems.length === 0}
+                className="w-full h-[58px] bg-transparent border-2 border-black text-black hover:bg-black hover:text-white [font-family:'Poppins',Helvetica] font-normal text-xl rounded-[15px] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 Check Out
               </Button>
             </CardContent>

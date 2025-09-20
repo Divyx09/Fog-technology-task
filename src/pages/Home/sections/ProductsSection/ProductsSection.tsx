@@ -1,81 +1,74 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "../../../../components/ui/button";
 import { Card, CardContent } from "../../../../components/ui/card";
-
-const products = [
-  {
-    id: 1,
-    name: "Syltherine",
-    description: "Stylish cafe chair",
-    price: "Rp 2.500.000",
-    originalPrice: "Rp 3.500.000",
-    discount: "-30%",
-    image: "https://images.pexels.com/photos/586769/pexels-photo-586769.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: false,
-  },
-  {
-    id: 2,
-    name: "Leviosa",
-    description: "Stylish cafe chair",
-    price: "Rp 2.500.000",
-    image: "https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: false,
-  },
-  {
-    id: 3,
-    name: "Lolito",
-    description: "Luxury big sofa",
-    price: "Rp 7.000.000",
-    originalPrice: "Rp 14.000.000",
-    discount: "-50%",
-    image: "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: false,
-  },
-  {
-    id: 4,
-    name: "Respira",
-    description: "Outdoor bar table and stool",
-    price: "Rp 500.000",
-    image: "https://images.pexels.com/photos/1571453/pexels-photo-1571453.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: true,
-  },
-  {
-    id: 5,
-    name: "Grifo",
-    description: "Night lamp",
-    price: "Rp 1.500.000",
-    image: "https://images.pexels.com/photos/1571468/pexels-photo-1571468.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: false,
-  },
-  {
-    id: 6,
-    name: "Muggo",
-    description: "Small mug",
-    price: "Rp 150.000",
-    image: "https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: true,
-  },
-  {
-    id: 7,
-    name: "Pingky",
-    description: "Cute bed set",
-    price: "Rp 7.000.000",
-    originalPrice: "Rp 14.000.000",
-    discount: "-50%",
-    image: "https://images.pexels.com/photos/1571471/pexels-photo-1571471.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: false,
-  },
-  {
-    id: 8,
-    name: "Potty",
-    description: "Minimalist flower pot",
-    price: "Rp 500.000",
-    image: "https://images.pexels.com/photos/1571458/pexels-photo-1571458.jpeg?auto=compress&cs=tinysrgb&w=285&h=301&fit=crop",
-    isNew: true,
-  },
-];
+import { useApp } from "../../../../context/AppContext";
+import { formatPrice } from "../../../../utils";
+import { useNavigate } from "react-router-dom";
+import { ProductImage } from "../../../../components/ProductImage/ProductImage";
 
 export const ProductsSection = (): JSX.Element => {
+  const { state, actions } = useApp();
+  const navigate = useNavigate();
+  const { products, loading, error } = state;
+
+  useEffect(() => {
+    actions.loadProducts();
+  }, []);
+
+  const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    const product = products.find(p => p && p._id === productId);
+    if (product && product._id) {
+      await actions.addToCart(product);
+    } else {
+      console.error('Product not found or invalid:', productId);
+    }
+  };
+
+  const handleProductClick = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
+
+  if (loading.products) {
+    return (
+      <section className="w-full bg-white py-[56px]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="[font-family:'Poppins',Helvetica] font-bold text-[#3a3a3a] text-[40px] tracking-[0] leading-[48px]">
+              Our Products
+            </h2>
+          </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-gray-500">Loading products...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="w-full bg-white py-[56px]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="[font-family:'Poppins',Helvetica] font-bold text-[#3a3a3a] text-[40px] tracking-[0] leading-[48px]">
+              Our Products
+            </h2>
+          </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="text-lg text-red-500 mb-4">Error loading products: {error}</div>
+              <Button onClick={() => actions.loadProducts()}>Try Again</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Show first 8 products for home page
+  const displayProducts = products.slice(0, 8);
+
   return (
     <section className="w-full bg-white py-[56px]">
       <div className="max-w-7xl mx-auto px-4">
@@ -86,32 +79,33 @@ export const ProductsSection = (): JSX.Element => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {products.map((product) => (
+          {displayProducts.filter(product => product && product._id).map((product) => (
             <Card
-              key={product.id}
-              className="group relative bg-[#f4f5f7] border-0 shadow-none overflow-hidden hover:shadow-lg transition-all duration-300"
+              key={product._id}
+              className="group relative bg-[#f4f5f7] border-0 shadow-none overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
+              onClick={() => handleProductClick(product._id)}
             >
               <CardContent className="p-0">
                 <div className="relative overflow-hidden">
-                  <img
+                  <ProductImage
                     src={product.image}
                     alt={product.name}
                     className="w-full h-[301px] object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   
-                  {/* Badges */}
+                  {/* Stock badge */}
                   <div className="absolute top-6 right-6 flex flex-col gap-2">
-                    {product.discount && (
+                    {product.stock <= 5 && product.stock > 0 && (
                       <div className="w-12 h-12 bg-[#e97171] rounded-full flex items-center justify-center">
-                        <span className="[font-family:'Poppins',Helvetica] font-medium text-white text-base">
-                          {product.discount}
+                        <span className="[font-family:'Poppins',Helvetica] font-medium text-white text-xs">
+                          Low
                         </span>
                       </div>
                     )}
-                    {product.isNew && (
-                      <div className="w-12 h-12 bg-[#2ec1ac] rounded-full flex items-center justify-center">
-                        <span className="[font-family:'Poppins',Helvetica] font-medium text-white text-base">
-                          New
+                    {product.stock === 0 && (
+                      <div className="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center">
+                        <span className="[font-family:'Poppins',Helvetica] font-medium text-white text-xs">
+                          Out
                         </span>
                       </div>
                     )}
@@ -120,14 +114,24 @@ export const ProductsSection = (): JSX.Element => {
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <div className="text-center space-y-6">
-                      <Button className="bg-white text-[#b88e2f] hover:bg-gray-100 [font-family:'Poppins',Helvetica] font-semibold text-base px-12 py-3">
-                        Add to cart
+                      <Button 
+                        className="bg-white text-[#b88e2f] hover:bg-gray-100 [font-family:'Poppins',Helvetica] font-semibold text-base px-12 py-3"
+                        onClick={(e) => handleAddToCart(e, product._id)}
+                        disabled={product.stock === 0}
+                      >
+                        {product.stock === 0 ? 'Out of Stock' : 'Add to cart'}
                       </Button>
                       <div className="flex items-center justify-center gap-5 text-white">
                         <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300">
                           Share
                         </button>
-                        <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300">
+                        <button 
+                          className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/comparison');
+                          }}
+                        >
                           Compare
                         </button>
                         <button className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-base hover:text-gray-300">
@@ -147,13 +151,11 @@ export const ProductsSection = (): JSX.Element => {
                   </p>
                   <div className="flex items-center gap-4">
                     <span className="[font-family:'Poppins',Helvetica] font-semibold text-[#3a3a3a] text-xl">
-                      {product.price}
+                      {formatPrice(product.price)}
                     </span>
-                    {product.originalPrice && (
-                      <span className="[font-family:'Poppins',Helvetica] font-normal text-[#b0b0b0] text-base line-through">
-                        {product.originalPrice}
-                      </span>
-                    )}
+                    <span className="[font-family:'Poppins',Helvetica] font-normal text-[#898989] text-sm">
+                      Stock: {product.stock}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -165,6 +167,7 @@ export const ProductsSection = (): JSX.Element => {
           <Button
             variant="outline"
             className="border-[#b88e2f] text-[#b88e2f] hover:bg-[#b88e2f] hover:text-white [font-family:'Poppins',Helvetica] font-semibold text-base px-[74px] py-3 h-auto"
+            onClick={() => navigate('/shop')}
           >
             Show More
           </Button>

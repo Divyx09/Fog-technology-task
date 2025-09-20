@@ -1,22 +1,24 @@
 import React from "react";
-import { HeaderSection } from "./sections/HeaderSection/HeaderSection";
-import { ShopBannerSection } from "./sections/ShopBannerSection/ShopBannerSection";
+import { Layout } from "../../components/Layout/Layout";
+import { Banner } from "../../components/Banner/Banner";
+import { Features } from "../../components/Features/Features";
 import { FilterSection } from "./sections/FilterSection/FilterSection";
 import { ProductGridSection } from "./sections/ProductGridSection/ProductGridSection";
 import { PaginationSection } from "./sections/PaginationSection/PaginationSection";
-import { ContactFormSection } from "./sections/ContactFormSection/ContactFormSection";
-import { FooterSection } from "./sections/FooterSection/FooterSection";
 
 export const Shop = (): JSX.Element => {
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Shop" },
+  ];
+
   return (
-    <div className="bg-white overflow-hidden w-full min-w-[1440px] flex flex-col">
-      <HeaderSection />
-      <ShopBannerSection />
+    <Layout>
+      <Banner title="Shop" breadcrumbs={breadcrumbs} />
       <FilterSection />
       <ProductGridSection />
       <PaginationSection />
-      <ContactFormSection />
-      <FooterSection />
-    </div>
+      <Features />
+    </Layout>
   );
 };

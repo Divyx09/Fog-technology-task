@@ -1,18 +1,22 @@
 import React from "react";
-import { ContactFormSection } from "./sections/ContactFormSection/ContactFormSection";
+import { Layout } from "../../components/Layout/Layout";
+import { Banner } from "../../components/Banner/Banner";
+import { Features } from "../../components/Features/Features";
 import { ContactInfoSection } from "./sections/ContactInfoSection/ContactInfoSection";
-import { FooterSection } from "./sections/FooterSection/FooterSection";
-import { HeaderSection } from "./sections/HeaderSection/HeaderSection";
 import { MainContentSection } from "./sections/MainContentSection/MainContentSection";
 
 export const Contact = (): JSX.Element => {
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Contact" },
+  ];
+
   return (
-    <div className="bg-white overflow-hidden w-full min-w-[1440px] flex flex-col">
-      <HeaderSection />
+    <Layout>
+      <Banner title="Contact" breadcrumbs={breadcrumbs} />
       <ContactInfoSection />
       <MainContentSection />
-      <ContactFormSection />
-      <FooterSection />
-    </div>
+      <Features />
+    </Layout>
   );
 };
