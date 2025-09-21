@@ -1,6 +1,6 @@
 import { Product, Cart, ApiResponse, ApiError, ProductsResponse, ProductFilters, ProductStats } from '../types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://furniro-service-ehlu6.ondigitalocean.app/api';
 
 class ApiService {
   private async makeRequest<T>(
