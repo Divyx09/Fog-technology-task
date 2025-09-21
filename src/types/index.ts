@@ -79,3 +79,25 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+// Toast Types
+export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
+
+export interface ToastData {
+  id: string;
+  title?: string;
+  description?: string;
+  variant?: ToastVariant;
+  duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}
+
+export interface ToastContextType {
+  toasts: ToastData[];
+  addToast: (toast: Omit<ToastData, 'id'>) => string;
+  removeToast: (id: string) => void;
+  clearAllToasts: () => void;
+}

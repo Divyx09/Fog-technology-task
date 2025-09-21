@@ -5,7 +5,7 @@ import { useApp } from "../../../../context/AppContext";
 import { formatPrice } from "../../../../utils";
 import { useNavigate } from "react-router-dom";
 import { ProductImage } from "../../../../components/ProductImage/ProductImage";
-import { EditIcon, TrashIcon } from "lucide-react";
+import { EditIcon, TrashIcon, BarChart3Icon } from "lucide-react";
 import { Product } from "../../../../types";
 
 interface ProductGridSectionProps {
@@ -31,6 +31,11 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({ onEditPr
     } else {
       console.error('Product not found or invalid:', productId);
     }
+  };
+
+  const handleAddToComparison = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    actions.addToComparison(product);
   };
 
   const handleProductClick = (productId: string) => {
@@ -118,23 +123,35 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({ onEditPr
                     )}
                   </div>
 
-                  {/* Admin action buttons */}
-                  <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {/* Admin action buttons - Always visible on mobile, hover on desktop */}
+                  <div className="absolute top-2 left-2 lg:top-4 lg:left-4 flex gap-1 lg:gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 z-20">
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="w-8 h-8 bg-white/90 hover:bg-white"
+                      className="w-7 h-7 lg:w-8 lg:h-8 bg-white/95 hover:bg-white shadow-md z-30"
                       onClick={(e) => handleEditProduct(e, product)}
+                      title="Edit Product"
                     >
-                      <EditIcon className="w-4 h-4" />
+                      <EditIcon className="w-3 h-3 lg:w-4 lg:h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="w-7 h-7 lg:w-8 lg:h-8 bg-blue-500/95 hover:bg-blue-600 text-white shadow-md z-30"
+                      onClick={(e) => handleAddToComparison(e, product)}
+                      title="Add to Comparison"
+                      disabled={state.comparisonProducts.length >= 4}
+                    >
+                      <BarChart3Icon className="w-3 h-3 lg:w-4 lg:h-4" />
                     </Button>
                     <Button
                       size="icon"
                       variant="destructive"
-                      className="w-8 h-8 bg-red-500/90 hover:bg-red-600"
+                      className="w-7 h-7 lg:w-8 lg:h-8 bg-red-500/95 hover:bg-red-600 shadow-md z-30"
                       onClick={(e) => handleDeleteProduct(e, product._id)}
+                      title="Delete Product"
                     >
-                      <TrashIcon className="w-4 h-4" />
+                      <TrashIcon className="w-3 h-3 lg:w-4 lg:h-4" />
                     </Button>
                   </div>
 
@@ -154,10 +171,8 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({ onEditPr
                         </button>
                         <button 
                           className="flex items-center gap-1 [font-family:'Poppins',Helvetica] font-semibold text-sm hover:text-gray-300"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('/comparison');
-                          }}
+                          onClick={(e) => handleAddToComparison(e, product)}
+                          disabled={state.comparisonProducts.length >= 4}
                         >
                           Compare
                         </button>

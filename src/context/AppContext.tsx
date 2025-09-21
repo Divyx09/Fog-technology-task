@@ -9,6 +9,7 @@ interface AppState {
   products: Product[];
   cartItems: FrontendCartItem[];
   cartId: string | null;
+  comparisonProducts: Product[]; // New comparison state
   filters: ProductFilters;
   pagination: {
     currentPage: number;
@@ -37,13 +38,17 @@ type AppAction =
   | { type: 'REMOVE_FROM_CART'; payload: string }
   | { type: 'ADD_PRODUCT'; payload: Product }
   | { type: 'UPDATE_PRODUCT'; payload: Product }
-  | { type: 'DELETE_PRODUCT'; payload: string };
+  | { type: 'DELETE_PRODUCT'; payload: string }
+  | { type: 'ADD_TO_COMPARISON'; payload: Product }
+  | { type: 'REMOVE_FROM_COMPARISON'; payload: string }
+  | { type: 'CLEAR_COMPARISON' };
 
 // Initial state
 const initialState: AppState = {
   products: [],
   cartItems: [],
   cartId: null,
+  comparisonProducts: [], // Initialize comparison products
   filters: {
     page: 1,
     limit: 12,
@@ -142,6 +147,29 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         ...state,
         products: state.products.filter(product => product._id !== action.payload),
       };
+    case 'ADD_TO_COMPARISON':
+      // Limit to 4 products for comparison
+      if (state.comparisonProducts.length >= 4) {
+        return state; // Don't add if already at limit
+      }
+      // Check if product already exists in comparison
+      if (state.comparisonProducts.find(p => p._id === action.payload._id)) {
+        return state; // Don't add if already exists
+      }
+      return {
+        ...state,
+        comparisonProducts: [...state.comparisonProducts, action.payload],
+      };
+    case 'REMOVE_FROM_COMPARISON':
+      return {
+        ...state,
+        comparisonProducts: state.comparisonProducts.filter(product => product._id !== action.payload),
+      };
+    case 'CLEAR_COMPARISON':
+      return {
+        ...state,
+        comparisonProducts: [],
+      };
     default:
       return state;
   }
@@ -161,6 +189,9 @@ interface AppContextType {
     createProduct: (product: Omit<Product, '_id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
     updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
+    addToComparison: (product: Product) => void;
+    removeFromComparison: (productId: string) => void;
+    clearComparison: () => void;
     clearError: () => void;
   };
 }
@@ -271,11 +302,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       dispatch({ type: 'ADD_TO_CART', payload: frontendCartItem });
       
       // Show success toast notification
-      toast({
-        variant: 'success',
-        title: 'Added to cart!',
-        description: `${product.name} has been added to your cart.`,
-      });
+      toast.success('Added to cart!', `${product.name} has been added to your cart.`);
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to add to cart' });
     }
@@ -349,6 +376,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'SET_ERROR', payload: null });
   };
 
+  // Comparison functions
+  const addToComparison = (product: Product) => {
+    dispatch({ type: 'ADD_TO_COMPARISON', payload: product });
+    toast.success('Added to comparison!', `${product.name} has been added to comparison.`);
+  };
+
+  const removeFromComparison = (productId: string) => {
+    dispatch({ type: 'REMOVE_FROM_COMPARISON', payload: productId });
+  };
+
+  const clearComparison = () => {
+    dispatch({ type: 'CLEAR_COMPARISON' });
+  };
+
   const contextValue: AppContextType = {
     state,
     actions: {
@@ -362,6 +403,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createProduct,
       updateProduct,
       deleteProduct,
+      addToComparison,
+      removeFromComparison,
+      clearComparison,
       clearError,
     },
   };

@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../../../../components/ui/button";
 import { useApp } from "../../../../context/AppContext";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 export const PaginationSection = (): JSX.Element | null => {
   const { state, actions } = useApp();
@@ -67,9 +68,10 @@ export const PaginationSection = (): JSX.Element | null => {
             <Button
               onClick={handlePrevious}
               variant="ghost"
-              className="w-[98px] h-[60px] bg-[#f9f1e7] hover:bg-[#b88e2f] hover:text-white text-black [font-family:'Poppins',Helvetica] font-light text-xl rounded-[10px]"
+              className="w-[60px] h-[60px] bg-[#f9f1e7] hover:bg-[#b88e2f] hover:text-white text-black rounded-[10px] flex items-center justify-center"
+              title="Previous Page"
             >
-              Previous
+              <ChevronLeftIcon className="w-6 h-6" />
             </Button>
           )}
           
@@ -94,9 +96,10 @@ export const PaginationSection = (): JSX.Element | null => {
             <Button
               onClick={handleNext}
               variant="ghost"
-              className="w-[98px] h-[60px] bg-[#f9f1e7] hover:bg-[#b88e2f] hover:text-white text-black [font-family:'Poppins',Helvetica] font-light text-xl rounded-[10px]"
+              className="w-[60px] h-[60px] bg-[#f9f1e7] hover:bg-[#b88e2f] hover:text-white text-black rounded-[10px] flex items-center justify-center"
+              title="Next Page"
             >
-              Next
+              <ChevronRightIcon className="w-6 h-6" />
             </Button>
           )}
         </div>

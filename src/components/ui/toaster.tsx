@@ -1,36 +1,28 @@
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastTitle,
-} from "./toast"
-import { useToast } from "../../hooks/use-toast"
+import React from 'react';
+import { createPortal } from 'react-dom';
+import { useToast } from '../../context/ToastContext';
+import { Toast } from './toast';
 
-export function Toaster() {
-  const { toasts, dismiss } = useToast()
+export const Toaster: React.FC = () => {
+  const { toasts, removeToast } = useToast();
 
-  return (
-    <div className="fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:bottom-0 sm:right-0 sm:flex-col md:max-w-[420px]">
-      {toasts.map(function (toast) {
-        const { id, title, description, action, variant, ...props } = toast;
-        return (
-          <div
-            key={id}
-            className="relative group mb-2 transform transition-all duration-300 ease-in-out"
-          >
-            <Toast variant={variant} {...props}>
-              <div className="grid gap-1">
-                {title && <ToastTitle>{title}</ToastTitle>}
-                {description && (
-                  <ToastDescription>{description}</ToastDescription>
-                )}
-              </div>
-              {action}
-              <ToastClose onClick={() => dismiss(id)} />
-            </Toast>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
+  // Don't render anything if no toasts
+  if (toasts.length === 0) {
+    return null;
+  }
+
+  return createPortal(
+    <div
+      className="fixed top-4 right-4 z-[9999] flex flex-col space-y-3 pointer-events-none"
+      aria-live="polite"
+      aria-label="Notifications"
+    >
+      {toasts.map((toast) => (
+        <div key={toast.id} className="pointer-events-auto">
+          <Toast toast={toast} onRemove={removeToast} />
+        </div>
+      ))}
+    </div>,
+    document.body
+  );
+};
