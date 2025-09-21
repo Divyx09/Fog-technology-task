@@ -233,7 +233,7 @@ export const Footer: React.FC = () => {
 
         <div className="text-center sm:text-left">
           <p className="font-normal text-black text-sm lg:text-base [font-family:'Poppins',Helvetica] tracking-[0] leading-[normal]">
-            2023 furino. All rights reserved
+            1986 furino. All rights reserved
           </p>
         </div>
       </div>

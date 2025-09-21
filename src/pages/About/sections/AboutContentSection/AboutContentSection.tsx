@@ -7,16 +7,16 @@ export const AboutContentSection = (): JSX.Element => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="[font-family:'Poppins',Helvetica] font-bold text-[#3a3a3a] text-4xl tracking-[0] leading-[48px] mb-6">
-              Our Story
+              Our Journey
             </h2>
             <p className="[font-family:'Poppins',Helvetica] font-normal text-[#666666] text-base tracking-[0] leading-[24px] mb-6">
-              Founded in 2010, Furniro has been dedicated to creating beautiful, functional furniture that transforms houses into homes. Our journey began with a simple vision: to make high-quality, stylish furniture accessible to everyone.
+              Since 2010, Furniro has been passionately crafting exceptional furniture that turns living spaces into personal sanctuaries. We started with a clear purpose: making premium, elegant furniture designs available to households everywhere.
             </p>
             <p className="[font-family:'Poppins',Helvetica] font-normal text-[#666666] text-base tracking-[0] leading-[24px] mb-6">
-              Over the years, we've grown from a small workshop to a leading furniture brand, but our commitment to craftsmanship and customer satisfaction remains unchanged. Every piece we create is designed with care, built to last, and crafted to inspire.
+              Through the years, we've evolved from a modest artisan workshop into a renowned furniture destination, yet our dedication to superior craftsmanship and customer delight stays at our core. Each creation reflects thoughtful design, enduring quality, and the power to transform spaces.
             </p>
             <p className="[font-family:'Poppins',Helvetica] font-normal text-[#666666] text-base tracking-[0] leading-[24px]">
-              Today, we continue to innovate and evolve, bringing you the latest in furniture design while maintaining the timeless quality that has made us who we are.
+              Now, we push boundaries with fresh innovations while preserving the exceptional standards and authentic character that define our brand heritage.
             </p>
           </div>
           
@@ -40,16 +40,16 @@ export const AboutContentSection = (): JSX.Element => {
           
           <div className="order-1 lg:order-2">
             <h2 className="[font-family:'Poppins',Helvetica] font-bold text-[#3a3a3a] text-4xl tracking-[0] leading-[48px] mb-6">
-              Our Mission
+              Our Purpose
             </h2>
             <p className="[font-family:'Poppins',Helvetica] font-normal text-[#666666] text-base tracking-[0] leading-[24px] mb-6">
-              At Furniro, our mission is to create furniture that not only looks beautiful but also enhances the way you live. We believe that your home should be a reflection of your personality and a sanctuary where you can relax and recharge.
+              Furniro exists to design furniture that transcends mere aesthetics—pieces that elevate your daily living experience. We understand that your home represents your unique identity and serves as your personal retreat for comfort and rejuvenation.
             </p>
             <p className="[font-family:'Poppins',Helvetica] font-normal text-[#666666] text-base tracking-[0] leading-[24px] mb-6">
-              We're committed to sustainable practices, using responsibly sourced materials and eco-friendly manufacturing processes. Our goal is to create furniture that's not only good for your home but also good for the planet.
+              Environmental responsibility drives our operations through ethical material sourcing and green production methods. We're dedicated to crafting furniture that benefits both your living space and our shared environment.
             </p>
             <p className="[font-family:'Poppins',Helvetica] font-normal text-[#666666] text-base tracking-[0] leading-[24px]">
-              Every day, we strive to exceed your expectations with exceptional quality, innovative design, and outstanding customer service.
+              Our daily commitment focuses on surpassing your expectations through remarkable quality, cutting-edge design, and unparalleled customer care.
             </p>
           </div>
         </div>
